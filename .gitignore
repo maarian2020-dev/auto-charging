@@ -1,0 +1,18 @@
+# secretos y logs
+credentials.env
+*.env
+!credentials.env.example
+*.log
+
+# python
+__pycache__/
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+
+# editores
+.vscode/
+.idea/
