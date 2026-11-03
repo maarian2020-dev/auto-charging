@@ -1,3 +1,4 @@
 tinytuya>=1.13
 psutil>=5.9
 python-dotenv>=1.0
+tomli>=2; python_version < "3.11"

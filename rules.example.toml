@@ -1,0 +1,35 @@
+# Reglas de carga. Se evalua la PRIMERA que coincida con el dia y la hora;
+# si ninguna coincide se usa BATTERY_LOW/BATTERY_HIGH de credentials.env.
+# Copia este fichero a rules.toml y ajustalo.
+
+# Movil de noche: a las 07:30 debe estar al 100 %.
+# Mantiene 90-95 % (cerca del 100) y programa el ultimo tramo para llegar
+# al 100 % justo a las 07:30, usando el tiempo de carga aprendido de tu cargador.
+[[rule]]
+name = "noche"
+mode = "ready_by"
+start = "22:00"
+end = "07:30"
+ready_by = "07:30"
+hold_low = 90
+hold_high = 95
+target = 100
+
+# Durante el dia: histeresis clasica para cuidar la bateria.
+[[rule]]
+name = "dia"
+mode = "range"
+start = "07:30"
+end = "22:00"
+low = 20
+high = 80
+
+# Ejemplo solo para dias laborables (opcional):
+# [[rule]]
+# name = "trabajo"
+# mode = "range"
+# days = ["mon", "tue", "wed", "thu", "fri"]
+# start = "09:00"
+# end = "18:00"
+# low = 30
+# high = 70

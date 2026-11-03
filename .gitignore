@@ -3,6 +3,8 @@ credentials.env
 *.env
 !credentials.env.example
 *.log
+*.db
+rules.toml
 
 # python
 __pycache__/
