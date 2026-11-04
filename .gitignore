@@ -18,3 +18,9 @@ dist/
 # editores
 .vscode/
 .idea/
+
+snapshot.json
+devices.json
+tuya-raw.json
+tinytuya.json
+*.patch
