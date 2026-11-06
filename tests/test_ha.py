@@ -18,6 +18,7 @@ class FakeHA:
     def __init__(self):
         self.states = {}
         self.calls = []
+        self.power_entity = None     # si se define, su valor sigue al enchufe (65 W encendido / 0 W apagado)
         outer = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -37,6 +38,10 @@ class FakeHA:
             def do_GET(self):
                 if not self._auth():
                     return
+                if self.path == "/api/":
+                    return self._send(200, {"message": "API running."})
+                if self.path == "/api/states":
+                    return self._send(200, [dict(v, entity_id=k) for k, v in outer.states.items()])
                 entity = self.path.removeprefix("/api/states/")
                 if entity in outer.states:
                     self._send(200, outer.states[entity])
@@ -50,7 +55,10 @@ class FakeHA:
                 if self.path.startswith("/api/services/"):
                     outer.calls.append((self.path, body))
                     if self.path.endswith(("turn_on", "turn_off")):
-                        outer.states[body["entity_id"]]["state"] = "on" if self.path.endswith("turn_on") else "off"
+                        on = self.path.endswith("turn_on")
+                        outer.states[body["entity_id"]]["state"] = "on" if on else "off"
+                        if outer.power_entity:
+                            outer.states[outer.power_entity]["state"] = "65" if on else "0"
                     self._send(200, [])
                 else:
                     entity = self.path.removeprefix("/api/states/")

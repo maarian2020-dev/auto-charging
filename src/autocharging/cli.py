@@ -9,7 +9,7 @@ from pathlib import Path
 
 from . import __version__
 from .advice import build_report
-from .config import Config
+from .config import Config, ha_credentials
 from .controller import Controller
 from .ha import HABattery, HAClient, HAError, HAPlug
 from .history import History
@@ -17,6 +17,7 @@ from .learning import Learner
 from .plug import Plug
 from .remote import RemoteStore, start_remote_server
 from .rules import load_rules
+from .selftest import discover, format_discovery, run_cycle_test, run_selftest
 
 log = logging.getLogger("autocharging")
 
@@ -77,6 +78,13 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true", help="decide y registra, pero no conmuta")
     parser.add_argument("--report", action="store_true",
                         help="muestra lo aprendido (cargadores, tiempos) y consejos de salud, y sale")
+    parser.add_argument("--discover", nargs="?", const="", metavar="TEXTO",
+                        help="lista enchufes, sensores de potencia y baterias de Home Assistant (opcional: filtrar por TEXTO)")
+    parser.add_argument("--selftest", action="store_true",
+                        help="comprueba Home Assistant, enchufe, potencia y bateria (con --actuate prueba apagar y encender)")
+    parser.add_argument("--actuate", action="store_true", help="con --selftest: apaga y enciende el enchufe de verdad")
+    parser.add_argument("--test-cycle", action="store_true",
+                        help="prueba real: umbrales pegados al nivel actual hasta ver apagar y encender")
     parser.add_argument("--once", action="store_true", help="un solo ciclo y sale")
     parser.add_argument("--env-file", help="ruta a credentials.env (por defecto ./credentials.env)")
     parser.add_argument("--options-json", help="opciones del add-on de Home Assistant (uso interno)")
@@ -86,6 +94,16 @@ def main(argv=None):
     setup_logging()
     if args.options_json:
         load_options_json(args.options_json)
+    if args.discover is not None:
+        import getpass
+        url, token = ha_credentials(args.env_file)
+        url = url or input("URL de Home Assistant (por ejemplo http://192.168.1.156): ").strip()
+        token = token or getpass.getpass("Token de acceso de larga duracion (no se muestra): ").strip()
+        try:
+            print(format_discovery(discover(HAClient(url, token), args.discover)))
+        except HAError as e:
+            raise SystemExit(f"No se pudo consultar Home Assistant: {e}")
+        return
     cfg = Config.from_env(args.env_file)
 
     history = History(cfg.history_db) if cfg.history_db else None
@@ -99,6 +117,14 @@ def main(argv=None):
     plug = HAPlug(cfg, client, args.dry_run) if cfg.backend == "homeassistant" else Plug(cfg, args.dry_run)
     if args.probe:
         return probe(cfg, plug, client)
+    if args.selftest or args.test_cycle:
+        if client is None:
+            raise SystemExit("Esta prueba necesita HA_URL y HA_TOKEN en el archivo de configuracion.")
+        if args.selftest:
+            checks = run_selftest(cfg, client, plug, actuate=args.actuate)
+            raise SystemExit(1 if any(c.status == "FALLO" for c in checks) else 0)
+        result = run_cycle_test(cfg, client, plug)
+        raise SystemExit(0 if result["ok"] else 1)
     battery = HABattery(cfg, client) if cfg.ha_battery and client else None
 
     rules = []

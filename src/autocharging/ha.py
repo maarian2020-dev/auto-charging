@@ -46,6 +46,12 @@ class HAClient:
         except ValueError:
             raise HAError(f"respuesta no valida en {path}")
 
+    def ping(self):
+        return self._request("GET", "/")
+
+    def states(self):
+        return self._request("GET", "/states") or []
+
     def state(self, entity_id):
         return self._request("GET", f"/states/{entity_id}")
 
@@ -72,10 +78,9 @@ def _age_minutes(iso):
 class HAPlug:
     """Enchufe controlado a traves de una entidad de Home Assistant (switch.*)."""
 
-    settle_s = 1.5
-
     def __init__(self, cfg, client, dry_run=False):
         self.cfg, self.client, self.dry_run = cfg, client, dry_run
+        self.settle_s = cfg.ha_settle   # integraciones en la nube pueden tardar en reflejar el cambio
 
     def read(self):
         try:

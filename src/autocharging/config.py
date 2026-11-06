@@ -49,6 +49,7 @@ class Config:
     ha_plugged: str = ""
     ha_notify: str = ""
     ha_max_age: float = 180.0        # minutos
+    ha_settle: float = 1.5           # segundos de espera antes de confirmar un cambio del enchufe
 
     def validate(self):
         if not self.low < self.high <= self.abs_max <= 100:
@@ -110,9 +111,18 @@ class Config:
             ha_plugged=os.getenv("HA_PLUGGED_ENTITY", ""),
             ha_notify=os.getenv("HA_NOTIFY_SERVICE", ""),
             ha_max_age=_f("HA_MAX_AGE_MINUTES", 180),
+            ha_settle=_f("HA_SETTLE_SECONDS", 1.5),
         )
         try:
             cfg.validate()
         except ValueError as e:
             sys.exit(str(e))
         return cfg
+
+
+def ha_credentials(env_file=None):
+    """(url, token) de Home Assistant sin exigir el resto de la configuracion."""
+    load_dotenv(Path(env_file or os.getenv("ALC_ENV_FILE", "credentials.env")))
+    supervisor = os.getenv("SUPERVISOR_TOKEN")
+    url = os.getenv("HA_URL") or ("http://supervisor/core/api" if supervisor else "")
+    return url, os.getenv("HA_TOKEN") or supervisor or ""
