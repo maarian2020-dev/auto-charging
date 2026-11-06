@@ -70,6 +70,15 @@ def read_battery(cfg, client):
     return None
 
 
+def switch_label(cfg, client):
+    """'switch.x (Nombre amigable)' para mostrar exactamente que enchufe se va a manejar."""
+    try:
+        name = (client.state(cfg.ha_switch).get("attributes") or {}).get("friendly_name", "")
+    except HAError:
+        name = ""
+    return f"{cfg.ha_switch} ('{name}')" if name else cfg.ha_switch
+
+
 # -------------------------------------------------------------------------- selftest
 def run_selftest(cfg, client, plug, actuate=False, ask=input, sleep=time.sleep, out=print):
     checks = []
@@ -120,8 +129,9 @@ def run_selftest(cfg, client, plug, actuate=False, ask=input, sleep=time.sleep, 
             add(WARN, "Prueba de actuacion omitida", "la bateria debe ser al menos 30 %")
         elif not state.on:
             add(WARN, "Prueba de actuacion omitida", "el enchufe debe estar ON al empezar")
-        elif ask("Voy a APAGAR el enchufe unos segundos y a encenderlo de nuevo. ¿Continuar? (s/n): ").strip().lower() \
-                not in ("s", "si", "sí", "y", "yes"):
+        elif ask(f"Voy a APAGAR {switch_label(cfg, client)} unos segundos y a encenderlo de nuevo.\n"
+                 "Comprueba que es el enchufe del portatil (no un frigorifico ni el router). ¿Continuar? (s/n): "
+                 ).strip().lower() not in ("s", "si", "sí", "y", "yes"):
             add(WARN, "Prueba de actuacion cancelada por el usuario")
         else:
             ok_on = False
@@ -155,7 +165,7 @@ def run_selftest(cfg, client, plug, actuate=False, ask=input, sleep=time.sleep, 
 
 
 # ---------------------------------------------------------------------- ciclo real
-def run_cycle_test(cfg, client, plug, max_minutes=45, step_s=15, sleep=time.sleep, out=print, tick=None):
+def run_cycle_test(cfg, client, plug, max_minutes=45, step_s=15, sleep=time.sleep, out=print, tick=None, ask=None):
     """Corte real con umbrales pegados al nivel actual: espera ver APAGAR y despues ENCENDER.
 
     Siempre deja el enchufe encendido al terminar. `tick(on)` es un gancho solo para pruebas.
@@ -176,6 +186,11 @@ def run_cycle_test(cfg, client, plug, max_minutes=45, step_s=15, sleep=time.slee
         out(f"[FALLO] No se puede leer el enchufe: {e}")
         return {"ok": False, "events": []}
 
+    if ask is not None and ask(f"Se APAGARA y ENCENDERA {switch_label(cfg, client)} varias veces.\n"
+                              "Comprueba que es el enchufe del portatil (no un frigorifico ni el router). ¿Continuar? (s/n): "
+                              ).strip().lower() not in ("s", "si", "sí", "y", "yes"):
+        out("Prueba cancelada por el usuario.")
+        return {"ok": False, "events": []}
     low, high = max(1.0, pct - 1), min(100.0, pct + 2)
     test_cfg = replace(cfg, low=low, high=high, abs_max=max(cfg.abs_max, high + 2), poll=step_s)
     battery = HABattery(test_cfg, client) if test_cfg.ha_battery else None

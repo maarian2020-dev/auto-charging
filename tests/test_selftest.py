@@ -102,3 +102,22 @@ def test_cycle_test_restores_plug_even_if_it_times_out(ha):
     result = run_cycle_test(cfg, client, plug, max_minutes=0, step_s=0, sleep=lambda _: None, out=out.append)
     assert result["ok"] is False
     assert ha.states["switch.cargador"]["state"] == "on"
+
+
+def test_prompts_name_the_exact_plug(ha):
+    cfg, client, plug = setup_laptop(ha)
+    prompts = []
+    run_selftest(cfg, client, plug, actuate=True, ask=lambda p: (prompts.append(p), "n")[1],
+                 sleep=lambda _: None, out=lambda *_: None)
+    assert "switch.cargador" in prompts[0] and "Laptop Charger" in prompts[0] and "frigorifico" in prompts[0]
+    assert ha.calls == []
+
+
+def test_cycle_test_asks_before_touching_the_plug(ha):
+    cfg, client, plug = setup_laptop(ha, level="60")
+    prompts = []
+    out = []
+    result = run_cycle_test(cfg, client, plug, max_minutes=1, step_s=0, sleep=lambda _: None, out=out.append,
+                            ask=lambda p: (prompts.append(p), "n")[1])
+    assert result["ok"] is False and "Laptop Charger" in prompts[0]
+    assert ha.calls == [] and any("cancelada" in line for line in out)

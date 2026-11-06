@@ -100,7 +100,11 @@ def main(argv=None):
         url = url or input("URL de Home Assistant (por ejemplo http://192.168.1.156): ").strip()
         token = token or getpass.getpass("Token de acceso de larga duracion (no se muestra): ").strip()
         try:
-            print(format_discovery(discover(HAClient(url, token), args.discover)))
+            found = discover(HAClient(url, token), args.discover)
+            print(format_discovery(found))
+            if not args.discover and len(found["switch"]) > 5:
+                print(f"\nHay {len(found['switch'])} enchufes. Filtra por nombre, por ejemplo: autocharging --discover laptop")
+            print("\nAviso: elige con cuidado. Algunos enchufes controlan frigorificos, interruptores generales o el router.")
         except HAError as e:
             raise SystemExit(f"No se pudo consultar Home Assistant: {e}")
         return
@@ -123,7 +127,7 @@ def main(argv=None):
         if args.selftest:
             checks = run_selftest(cfg, client, plug, actuate=args.actuate)
             raise SystemExit(1 if any(c.status == "FALLO" for c in checks) else 0)
-        result = run_cycle_test(cfg, client, plug)
+        result = run_cycle_test(cfg, client, plug, ask=input)
         raise SystemExit(0 if result["ok"] else 1)
     battery = HABattery(cfg, client) if cfg.ha_battery and client else None
 

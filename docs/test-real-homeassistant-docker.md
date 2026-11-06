@@ -71,6 +71,8 @@ Sensores de potencia (HA_POWER_ENTITY):
 
 Apunta el nombre exacto del enchufe y del sensor de potencia.
 
+**Tu caso:** «Laptop Charger» ya está en Home Assistant (área LOS MOLINOS, integración Tuya, modelo ANTELA Smart Plug). Solo falta conocer los nombres de sus entidades. Elige con cuidado: en tu instalación hay otros enchufes iguales que controlan frigoríficos, interruptores generales y el router (`WIFI CASA`). El programa te mostrará el nombre exacto del enchufe antes de actuar.
+
 **Si «Laptop Charger» no aparece** en Home Assistant, hay que añadir el enchufe:
 
 - *Ajustes → Dispositivos y servicios → Añadir integración → Tuya* y seguir el asistente (suele pedir iniciar sesión con la app Tuya o Smart Life). Los pasos exactos pueden variar con la versión de Home Assistant; consulta la documentación de la integración Tuya.
@@ -162,7 +164,7 @@ Avisos habituales:
 autocharging --env-file credentials.test.env --selftest --actuate
 ```
 
-El programa pregunta antes de actuar. Responde `s`. Entonces:
+El programa muestra el nombre exacto del enchufe (por ejemplo `switch.laptop_charger ('Laptop Charger')`) y pregunta antes de actuar. **Si el nombre no es el del portátil, responde `n`.** Responde `s` solo si es el correcto. Entonces:
 
 1. Apaga el enchufe y comprueba que Home Assistant lo confirma.
 2. Espera 8 segundos y comprueba que el consumo baja a casi 0 W y que Windows detecta que se cortó la carga.
@@ -202,7 +204,7 @@ Esta es la prueba principal. El programa fija los umbrales **pegados al nivel ac
 autocharging --env-file credentials.test.env --test-cycle
 ```
 
-Requisitos: batería entre **25 % y 90 %** y enchufe encendido. Usa el portátil con normalidad (navegar, vídeo) para que la batería baje antes.
+El programa pide confirmación mostrando el nombre del enchufe; responde `n` si no es «Laptop Charger». Requisitos: batería entre **25 % y 90 %** y enchufe encendido. Usa el portátil con normalidad (navegar, vídeo) para que la batería baje antes.
 
 Lo que debe pasar:
 
