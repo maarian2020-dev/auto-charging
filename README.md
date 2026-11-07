@@ -24,7 +24,7 @@ Seguridades: corte absoluto (`BATTERY_ABS_MAX`), tiempo máximo de carga y verif
 ## Instalación
 
 ```bash
-git clone https://github.com/<tu-usuario>/auto-charging.git
+git clone https://github.com/maarian2020-dev/auto-charging.git
 cd auto-charging
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[all]"     # all = tinytuya (enchufe Tuya local) + psutil (bateria del portatil)
