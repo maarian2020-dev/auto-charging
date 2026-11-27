@@ -1,0 +1,16 @@
+# Linux: copiar a /etc/systemd/system/autocharging.service
+# Ajusta User, WorkingDirectory (donde esta credentials.env) y la ruta del ejecutable.
+[Unit]
+Description=Auto Charging (control de carga con enchufe Tuya)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=TU_USUARIO
+WorkingDirectory=/opt/auto-charging
+ExecStart=/opt/auto-charging/.venv/bin/autocharging
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

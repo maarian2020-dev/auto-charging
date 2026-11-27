@@ -18,3 +18,14 @@ dist/
 # editores
 .vscode/
 .idea/
+
+snapshot.json
+devices.json
+tuya-raw.json
+tinytuya.json
+*.patch
+
+rules*.toml
+!rules.example.toml
+historial_carga.csv
+manual_comandos.md

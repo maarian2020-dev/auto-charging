@@ -1,0 +1,43 @@
+name: Auto Charging
+version: "0.3.0"
+slug: autocharging
+description: Limita la carga de móviles y portátiles con un enchufe inteligente, con reglas horarias y aprendizaje
+url: https://github.com/maarian2020-dev/auto-charging
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: auto
+init: false
+homeassistant_api: true
+map:
+  - type: addon_config
+    read_only: false
+options:
+  ha_switch_entity: ""
+  ha_power_entity: ""
+  ha_battery_entity: ""
+  ha_battery_state_entity: ""
+  ha_plugged_entity: ""
+  ha_notify_service: ""
+  target_device: "movil"
+  battery_low: 20
+  battery_high: 80
+  battery_abs_max: 90
+  poll_seconds: 60
+  capacity_wh: 50
+  ha_max_age_minutes: 180
+schema:
+  ha_switch_entity: str
+  ha_power_entity: str?
+  ha_battery_entity: str?
+  ha_battery_state_entity: str?
+  ha_plugged_entity: str?
+  ha_notify_service: str?
+  target_device: str
+  battery_low: int(0,100)
+  battery_high: int(0,100)
+  battery_abs_max: int(0,100)
+  poll_seconds: int(10,600)
+  capacity_wh: float(1,)
+  ha_max_age_minutes: int(0,1440)
